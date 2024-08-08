@@ -1,5 +1,3 @@
-# QTM302_EDA_Project
- 
 # Analyzing the Distribution of Mental Health Professionals and Facilities
 
 Authors: Nuoya Wang, Bernice Yuan, Yunnie Yu
