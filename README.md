@@ -26,7 +26,15 @@ The primary objectives of this exploratory analysis are to:
 
 To run this project, you need to have R and RStudio installed on your system. The necessary libraries needed for this project are:
 
+```r
+# Load the necessary libraries
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(readr)
+
+# Load the dataset
+data <- read_csv("ahrfsn2023.csv")
+
+# Example analysis
+summary(data)
