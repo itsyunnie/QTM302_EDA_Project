@@ -1,0 +1,803 @@
+---
+title: "rnotebook"
+author: "Yunnie"
+date: "2024-08-08"
+output: html_document
+---
+
+```{r}
+# Install and load the renv package
+install.packages("renv")
+library(renv)
+
+# Initialize renv in your project
+renv::init()
+
+# Install necessary packages for your project
+renv::install("dplyr")
+renv::install("ggplot2")
+renv::install("tidyr")
+renv::install("readr")
+renv::install("knitr")
+# Add other packages as needed
+
+# Snapshot the project to save the state of your library
+renv::snapshot()
+
+# Ensure renv is activated each time you open the project
+cat('source("renv/activate.R")', file = ".Rprofile", append = TRUE)
+
+# Restore the project environment if needed
+renv::restore()
+
+```
+
+
+# Analyzing the Distribution of Mental Health Professionals and Facilities
+
+Authors: Nuoya Wang, Bernice Yuan, Yunnie Yu
+
+## I. Project Introduction
+
+### Background
+
+The mental health crisis in the United States, particularly among college students, has reached alarming levels. Suicide is the second leading cause of death for college students, with approximately 1,100 suicides occurring on college campuses each year. National statistics reveal that 25% of individuals know someone who has died by suicide, and 40% know someone who has attempted suicide. These figures highlight the pressing need for accessible mental health services.
+
+### Purpose
+
+Given these statistics, it is crucial to examine the distribution of mental health professionals across the United States to ensure adequate support is available. This project focuses on analyzing the distribution of mental health professionals across 16 states in the U.S. Using data from the Area Health Resources Files (AHRF) 2022-2023, this study aims to provide insights into the availability and distribution of mental health services. By understanding the distribution of mental health professionals, we can identify gaps in service provision and advocate for policies that enhance access to mental health care. This project is motivated by the urgent need to address the mental health crisis and reduce the incidence of suicide, particularly among vulnerable populations like college students.
+
+### Objectives
+
+The primary objectives of this exploratory analysis are to:
+
+1.  **Assess the Distribution of Mental Health Professionals**: Understand how counselors and psychologists are distributed across different states and their various subcategories.
+
+2.  **Identify Gaps and Opportunities**: Highlight areas with potentially inadequate mental health resources to guide policy decisions and resource allocation.
+
+3.  **Correlate Workforce Distribution with Outcomes**: Explore the relationships between the distribution of mental health professionals and various factors such as population size, median wage, and state policies.
+
+## II. Dataset Introduction
+
+### Source
+
+The dataset utilized in this analysis is sourced from the Health Resources and Services Administration (HRSA) and can be accessed at [HRSA Data Download](https://data.hrsa.gov/data/download). The HRSA provides comprehensive data on health resources, workforce, and services across the United States, which is crucial for understanding the landscape of healthcare provision and utilization.
+
+### Scope
+
+This dataset includes detailed information on various categories of mental health professionals, including counselors and psychologists, across different states in the U.S. The data covers:
+
+-   The total number of counselors and psychologists.
+
+-   ubcategories such as school psychologists, psychologists in hospitals, and those in outpatient care centers.
+
+-   Demographic and employment details of these professionals.
+
+-   State-wise population data to contextualize the distribution of mental health professionals.
+
+### Ethical Considerations
+
+While handling this dataset, several ethical considerations must be taken into account:
+
+-   **Privacy and Confidentiality**: The dataset does not contain personally identifiable information (PII) and is aggregated at the state level. However, ensuring that any analysis respects the confidentiality of the individuals represented is crucial.
+
+-   **Bias and Representation**: It is essential to be aware of potential biases in the data collection process, which might affect the representation of mental health professionals in various states.
+
+-   **Responsible Use**: The insights derived from this data should be used to inform and improve mental health services without stigmatizing or unfairly representing any state or population group.
+
+### Data Handling and Analysis
+
+To tailor the analysis to specific interests, the dataset will be subset and re-ordered as follows:
+
+-   **State Selection**: Focus on a selection of states with varying distributions of mental health professionals to provide a comparative analysis.
+
+-   **Proportion Calculations**: Calculate the proportion of specific categories of psychologists and counselors to the total population and among all mental health professionals.
+
+-   **Ordered Visualizations**: Create visualizations ordered by the proportion and count of mental health professionals to highlight trends and disparities.
+
+By conducting this exploratory analysis, we aim to provide valuable insights into the current state of mental health services in the U.S. and identify areas for improvement to ensure equitable access to mental health care for all populations. This project is motivated by the urgent need to address the mental health crisis and reduce the incidence of suicide, particularly among vulnerable populations like college students.
+
+## III. Data Preprocessing
+
+With a clear understanding of our dataset and its scope, we now proceed to the data preprocessing stage to ensure our data is clean and ready for analysis. This involves handling missing values, transforming data types, and preparing the data for subsequent exploration.
+
+### Loading Libraries
+
+First, we load the necessary libraries for data manipulation, visualization, and file handling.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(readr)
+library(knitr)
+```
+
+### Reading and Selecting Relevant Data
+
+We read the raw data from the CSV file and select the relevant columns for analysis.
+
+```{r}
+# Read the raw dataset
+raw_data <- read.csv("data/ahrfsn2023.csv")
+
+# Select relevant columns for analysis
+data <- raw_data %>%
+  select(st_abbrev,
+         conslrs_21,
+         conslrs_mal_21,
+         conslrs_fem_21,
+         conslrs_lt30_21,
+         conslrs_30_39_21,
+         conslrs_40_49_21,
+         conslrs_50_59_21,
+         conslrs_ge60_21,
+         conslrs_outpt_care_ctr_21,
+         conslrs_oth_hlth_svc_21,
+         conslrs_hosp_21,
+         conslrs_rcf_no_nursng_21,
+         conslrs_indv_famly_svc_21,
+         mentl_hlth_conslrs_emplymt_22,
+         mentl_hlth_conslrs_medn_wage_22,
+         rehab_conslrs_emplymt_22,
+         rehab_conslrs_medn_wage_22,
+         psychol_21,
+         psychol_mal_21,
+         psychol_fem_21,
+         psychol_lt30_21,
+         psychol_30_39_21,
+         psychol_40_49_21,
+         psychol_50_59_21,
+         psychol_ge60_21,
+         psychol_resrch_dev_svc_21,
+         psychol_sch_21,
+         psychol_ofcs_oth_hlth_practnr_21,
+         psychol_outpt_care_ctr_21,
+         psychol_hosp_21,
+         psychol_indv_famly_svc_21,
+         clinpsych_emplymt_22,
+         clinpsych_medn_wage_22,
+         sch_psychol_emplymt_22,
+         sch_psychol_medn_wage_22,
+         popn_pums_21,
+         popn_mal_21,
+         popn_fem_21)
+
+```
+
+### Handling Missing Values
+
+We handle missing values by replacing NA with 0 for numeric columns.
+
+```{r}
+# Handling missing values by replacing NA with 0 for numeric columns
+data <- data %>%
+  mutate(across(where(is.numeric), ~ replace_na(.x, 0)))
+```
+
+### Creating New Variables for Age Groups
+
+We create new variables to represent the counselors and psychologists under 60 and 60+ age groups.
+
+```{r}
+# Create new variables for age groups
+data <- data %>%
+  mutate(conslrs_under60 = conslrs_lt30_21 + conslrs_30_39_21 + conslrs_40_49_21 + conslrs_50_59_21,
+         conslrs_60plus = conslrs_ge60_21,
+         psychol_under60 = psychol_lt30_21 + psychol_30_39_21 + psychol_40_49_21 + psychol_50_59_21,
+         psychol_60plus = psychol_ge60_21)
+```
+
+### Removing Original Age Columns
+
+We remove the original age columns after creating the new variables.
+
+```{r}
+# Remove the original age columns
+data <- data %>%
+  select(-conslrs_lt30_21, -conslrs_30_39_21, -conslrs_40_49_21, -conslrs_50_59_21, -conslrs_ge60_21,
+         -psychol_lt30_21, -psychol_30_39_21, -psychol_40_49_21, -psychol_50_59_21, -psychol_ge60_21)
+```
+
+### Renaming Columns for Clarity
+
+We rename columns to improve clarity and readability.
+
+```{r}
+# Rename columns for clarity
+data <- data %>%
+  rename(
+    State = st_abbrev,
+    Total_Counselors = conslrs_21,
+    Male_Counselors = conslrs_mal_21,
+    Female_Counselors = conslrs_fem_21,
+    Counselors_Under60 = conslrs_under60,
+    Counselors_60plus = conslrs_60plus,
+    Counselors_Outpatient_Care_Centers = conslrs_outpt_care_ctr_21,
+    Counselors_Other_Health_Services = conslrs_oth_hlth_svc_21,
+    Counselors_Hospitals = conslrs_hosp_21,
+    Counselors_Residential_Care_Facilities = conslrs_rcf_no_nursng_21,
+    Counselors_Individual_Family_Services = conslrs_indv_famly_svc_21,
+    Mental_Health_Counselors_Employment = mentl_hlth_conslrs_emplymt_22,
+    Mental_Health_Counselors_Median_Wage = mentl_hlth_conslrs_medn_wage_22,
+    Rehabilitation_Counselors_Employment = rehab_conslrs_emplymt_22,
+    Rehabilitation_Counselors_Median_Wage = rehab_conslrs_medn_wage_22,
+    Total_Psychologists = psychol_21,
+    Male_Psychologists = psychol_mal_21,
+    Female_Psychologists = psychol_fem_21,
+    Psychologists_Under60 = psychol_under60,
+    Psychologists_60plus = psychol_60plus,
+    Psychologists_Research_Development_Services = psychol_resrch_dev_svc_21,
+    School_Psychologists = psychol_sch_21,
+    Psychologists_Other_Health_Practitioners_Offices = psychol_ofcs_oth_hlth_practnr_21,
+    Psychologists_Outpatient_Care_Centers = psychol_outpt_care_ctr_21,
+    Psychologists_Hospitals = psychol_hosp_21,
+    Psychologists_Individual_Family_Services = psychol_indv_famly_svc_21,
+    Clinical_Psychologists_Employment = clinpsych_emplymt_22,
+    Clinical_Psychologists_Median_Wage = clinpsych_medn_wage_22,
+    School_Psychologists_Employment = sch_psychol_emplymt_22,
+    School_Psychologists_Median_Wage = sch_psychol_medn_wage_22,
+    Population = popn_pums_21,
+    Male_Population = popn_mal_21,
+    Female_Population = popn_fem_21
+  )
+
+```
+
+### Filtering for Specific States
+
+We filter the dataset to keep only the specified states of interest.
+
+```{r}
+# Vector of state abbreviations to keep
+states_to_keep <- c("CT", "FL", "IL", "IN", "MA", "MI", "NJ", "NY", "NC", "OH", "TX", "VA", "WA", "PA", "WI","CA")
+
+# Filter the dataset to keep only the specified states
+data <- data %>%
+  filter(State %in% states_to_keep)
+```
+
+### Exporting the Processed Data
+
+Finally, we export the processed data to a new CSV file for further analysis.
+
+```{r}
+# Export the selected columns to a new CSV file
+write_csv(data, "data/data.csv")
+
+# Print a message to indicate successful export
+print("The new CSV file with selected columns has been exported successfully.")
+```
+
+## IV. Data Summary
+
+With our data now cleaned and preprocessed, we are ready to summarize the key characteristics and trends within the dataset. This summary will provide an overview of the distribution of mental health professionals and highlight any notable patterns or insights.
+
+The dataset used in this analysis comprises detailed information on mental health professionals across 16 states in the United States. It includes 16 rows, representing the selected states, and 43 columns, each containing specific data points related to counselors and psychologists. The variables cover various aspects such as the total number of professionals, their demographics, employment details, median wages, and distribution across different service settings.
+
+Here is the table of explanations for each column included in the following analysis.
+
+| Column Name                                          | Description                                                                     |
+|------------------------------------|------------------------------------|
+| **State**                                            | State abbreviation where data is collected.                                     |
+| **Total_Counselors**                                 | Total number of counselors in 2021.                                             |
+| **Male_Counselors**                                  | Number of male counselors in 2021.                                              |
+| **Female_Counselors**                                | Number of female counselors in 2021.                                            |
+| **Counselors_Under60**                               | Number of counselors under the age of 60 in 2021.                               |
+| **Counselors_60plus**                                | Number of counselors aged 60 and above in 2021.                                 |
+| **Counselors_Outpatient_Care_Centers**               | Number of counselors working in outpatient care centers in 2021.                |
+| **Counselors_Other_Health_Services**                 | Number of counselors working in other health services in 2021.                  |
+| **Counselors_Hospitals**                             | Number of counselors working in hospitals in 2021.                              |
+| **Counselors_Residential_Care_Facilities**           | Number of counselors working in residential care facilities in 2021.            |
+| **Counselors_Individual_Family_Services**            | Number of counselors working in individual and family services in 2021.         |
+| **Mental_Health_Counselors_Employment**              | Number of employed mental health counselors in 2022.                            |
+| **Mental_Health_Counselors_Median_Wage**             | Median wage of mental health counselors in 2022.                                |
+| **Rehabilitation_Counselors_Employment**             | Number of employed rehabilitation counselors in 2022.                           |
+| **Rehabilitation_Counselors_Median_Wage**            | Median wage of rehabilitation counselors in 2022.                               |
+| **Total_Psychologists**                              | Total number of psychologists in 2021.                                          |
+| **Male_Psychologists**                               | Number of male psychologists in 2021.                                           |
+| **Female_Psychologists**                             | Number of female psychologists in 2021.                                         |
+| **Psychologists_Under60**                            | Number of psychologists under the age of 60 in 2021.                            |
+| **Psychologists_60plus**                             | Number of psychologists aged 60 and above in 2021.                              |
+| **Psychologists_Research_Development_Services**      | Number of psychologists working in research and development services in 2021.   |
+| **School_Psychologists**                             | Number of school psychologists in 2021.                                         |
+| **Psychologists_Other_Health_Practitioners_Offices** | Number of psychologists working in other health practitioners' offices in 2021. |
+| **Psychologists_Outpatient_Care_Centers**            | Number of psychologists working in outpatient care centers in 2021.             |
+| **Psychologists_Hospitals**                          | Number of psychologists working in hospitals in 2021.                           |
+| **Psychologists_Individual_Family_Services**         | Number of psychologists working in individual and family services in 2021.      |
+| **Clinical_Psychologists_Employment**                | Number of employed clinical psychologists in 2022.                              |
+| **Clinical_Psychologists_Median_Wage**               | Median wage of clinical psychologists in 2022.                                  |
+| **School_Psychologists_Employment**                  | Number of employed school psychologists in 2022.                                |
+| **School_Psychologists_Median_Wage**                 | Median wage of school psychologists in 2022.                                    |
+| **Population**                                       | Total population in 2021.                                                       |
+| **Male_Population**                                  | Total male population in 2021.                                                  |
+| **Female_Population**                                | Total female population in 2021.                                                |
+
+The table below provides an overview of the total number of mental health professionals (counselors and psychologists combined) across the selected states. It includes the mean, median, and standard deviation.
+
+| Metric                 | Value     |
+|------------------------|-----------|
+| **Mean**               | 28,016.69 |
+| **Median**             | 21,125.5  |
+| **Standard Deviation** | 21,420.42 |
+
+-   **Mean**: The average number of mental health professionals across the states is approximately 28,016.69.
+-   **Median**: The median number of mental health professionals is 21,125.5, which is lower than the mean, indicating a right-skewed distribution.
+-   **Standard Deviation**: The high standard deviation of 21,420.42 suggests significant variation in the number of mental health professionals across different states.
+
+These metrics indicate that while some states have a high number of mental health professionals, there is substantial variation, with other states having significantly fewer professionals.
+
+```{r}
+# Calculate summary statistics for Total Counselors and Total Psychologists
+summary_stats <- data %>%
+  summarise(
+    Mean_Total = mean(Total_Counselors + Total_Psychologists),
+    Median_Total = median(Total_Counselors + Total_Psychologists),
+    SD_Total = sd(Total_Counselors + Total_Psychologists),
+  )
+
+# Print summary statistics in a simple table format
+# print(summary_stats)
+```
+
+The bar plot visualizes the number of mental health professionals (counselors and psychologists combined) across 16 states.
+
+```{r}
+data <- data %>%
+  mutate(Total_Mental_Health_Professionals = Total_Counselors + Total_Psychologists)
+
+# Plot the distribution of mental health professionals by state
+ggplot(data, aes(x = reorder(State, -Total_Mental_Health_Professionals), y = Total_Mental_Health_Professionals)) +
+  geom_bar(stat = "identity", fill = "rosybrown1") +
+  labs(title = "Distribution of Mental Health Professionals by State",
+       x = "State",
+       y = "Total Mental Health Professionals") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Here are some key observations:
+
+1.  **California (CA)**:
+    -   California has the highest number of mental health professionals, significantly more than any other state. This suggests a substantial investment in mental health services and a large demand for such professionals in the state.
+2.  **States with Lower Counts**:
+    -   Indiana (IN), Connecticut (CT), and Wisconsin (WI) have the lowest numbers of mental health professionals among the selected states, indicating potential gaps in mental health service provision.
+3.  **Summary**:
+    -   The distribution shows significant variability across states, with California and New York having notably higher numbers of mental health professionals.
+    -   States with lower numbers might need targeted policies and increased resources to enhance mental health services.
+
+This visualization highlights the disparities in the availability of mental health professionals across different states, which is crucial for understanding and addressing the mental health needs of these populations.
+
+## V. Data Analysis
+
+Having summarized the key characteristics and trends in our dataset, we now move on to a deeper data analysis. In this section, we will perform detailed examinations and derive insights to address our research questions and objectives.
+
+In this section, we conduct a comprehensive analysis of the distribution and characteristics of mental health professionals across the selected states. Our analysis is divided into three main parts:
+
+1.  **State-by-State Analysis**: Examining the distribution of mental health professionals across different states to identify disparities and areas for improvement. This analysis helps us understand the geographical variations in mental health resources, allowing us to pinpoint regions that may require additional support or policy intervention.
+
+2.  **Analysis by Age Group and Gender**: Investigating the demographics of mental health professionals to understand the age and gender composition within the workforce. This part is crucial for identifying potential demographic trends, such as aging professionals or gender imbalances, which can impact the future availability and diversity of mental health services.
+
+3.  **Comparison of Psychologists and Counselors**: Comparing the distribution, employment, and median wages of psychologists and counselors to highlight key differences and similarities between these two groups. This analysis provides insights into the professional landscape of mental health services, helping to inform workforce planning and policy decisions to ensure a balanced and effective mental health care system.
+
+### 1. State-by-State Analysis of Mental Health Professionals
+
+#### 1.1 Proportion of Mental Health Professionals Relative to State Populations
+
+Analyzing the proportion of mental health professionals relative to the total population in each state is crucial for understanding how adequately each state is equipped to address the mental health needs of its residents. This proportion provides insights into whether there are sufficient mental health resources to meet demand, helping identify states that might be under-resourced and need more targeted interventions.
+
+```{r}
+# Calculate the proportion of mental health population (counselors + psychologists) to the total population
+state_data1 <- data %>%
+  mutate(Mental_Health_Population = Total_Counselors + Total_Psychologists,
+         Proportion_Mental_Health = Mental_Health_Population / Population)
+
+# Order the data by Proportion_Mental_Health in descending order
+state_data1 <- state_data1 %>%
+  arrange(desc(Proportion_Mental_Health))
+
+```
+
+```{r}
+# Plot the proportion of mental health population to the total population for each state
+ggplot(state_data1, aes(x = reorder(State, -Proportion_Mental_Health), y = Proportion_Mental_Health)) +
+  geom_bar(stat = "identity", fill = "rosybrown1") +
+  labs(title = "Proportion of Mental Health Population to Total Population by State",
+       x = "State",
+       y = "Proportion of Mental Health Population") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+**Key observations:**
+
+1.  Massachusetts has the highest proportion of mental health professionals relative to its total population, indicating a strong emphasis on mental health services.
+2.  Michigan (MI), Indiana (IN), and Texas (TX) have the lowest proportions, which may indicate gaps in mental health service availability.
+
+**Implications:**
+
+1.  **Resource Allocation**: States with lower proportions may need to allocate more resources to mental health services to ensure adequate support for their populations.
+2.  **Policy and Funding**: Higher proportions in states like Massachusetts and New York suggest effective policies and funding strategies that could serve as models for other states.
+3.  **Access to Care**: States with higher proportions likely have better access to mental health care, whereas states with lower proportions might face barriers to access.
+
+This analysis highlights the disparities in the availability of mental health professionals relative to the total population across different states, providing insights into areas where improvements are needed.
+
+#### 1.2 Proportion of Different Categories of Psychologists by State
+
+Analyzing the distribution of different categories of psychologists across states is essential to understand how mental health services are structured and prioritized. Different types of psychologists serve varied roles, from research and development to direct patient care in schools and hospitals. By examining these distributions, we can identify which states have a balanced mental health infrastructure and which might need to diversify or expand their psychological services to meet the diverse needs of their populations.
+
+```{r}
+# Convert data to long format for plotting
+long_data <- data %>%
+  select(State, Psychologists_Research_Development_Services, School_Psychologists, 
+         Psychologists_Other_Health_Practitioners_Offices, Psychologists_Outpatient_Care_Centers,
+         Psychologists_Hospitals, Psychologists_Individual_Family_Services) %>%
+  pivot_longer(cols = -State, names_to = "Category", values_to = "Count")
+
+# Plot the distribution for each category of psychologists by state in descending order
+ggplot(long_data, aes(x = reorder(State, -Count), y = Count, fill = Category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Distribution of Different Types of Psychologists by State",
+       x = "State",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_brewer(palette = "Set3")
+```
+
+**Key Observations:**
+
+1.  California has the highest number of psychologists across most categories, especially in individual and family services, indicating a comprehensive mental health infrastructure.
+2.  Indiana (IN), Connecticut (CT), and Wisconsin (WI) have lower numbers of psychologists across all categories, which may indicate a need for more investment in mental health services.
+
+**Implications:**
+
+1.  **Service Gaps**: States with lower counts in specific categories may have gaps in their mental health services. For example, fewer school psychologists might indicate a need for more focus on children's mental health.
+2.  **Policy and Funding**: States with a well-distributed number of psychologists across categories likely have effective policies and adequate funding for diverse mental health needs.
+3.  **Access to Specialized Services**: High numbers of psychologists in research and development services in states like California suggest a strong focus on advancing mental health knowledge and practices.
+
+This analysis highlights the diversity and distribution of psychologists across different categories in various states. It underscores the importance of a balanced and comprehensive mental health infrastructure that includes various types of psychological services to address the broad spectrum of mental health needs in the population.
+
+#### 1.3 Correlation Analysis of Psychologists' Employment and Median Wage
+
+Understanding the correlation between the employment numbers and median wages of clinical and school psychologists is crucial for several reasons:
+
+1.  **Resource Allocation**: Identifying whether higher employment rates correlate with higher or lower median wages can help policymakers and educational institutions allocate resources more effectively. For instance, a positive correlation might suggest that increasing the workforce could potentially drive up wages, or conversely, that high wages attract more professionals.
+2.  **Policy Implications**: Analyzing these correlations can provide insights into the effectiveness of current policies. For example, if high wages are not correlated with higher employment, it may indicate that other factors such as work conditions, job satisfaction, or location desirability play a significant role in attracting professionals.
+3.  **Workforce Planning**: By understanding the relationship between employment and wages, stakeholders can better plan for future workforce needs. This is particularly important in fields like mental health where demand for services is high and ensuring an adequate supply of professionals is essential for meeting the population's needs.
+
+By analyzing these correlations, we aim to gain a deeper understanding of the factors that influence the employment and compensation of psychologists, which is essential for developing strategies to enhance mental health services and support professionals in this critical field.
+
+```{r}
+# Select relevant columns for correlation analysis
+correlation_data <- data %>%
+  select(Clinical_Psychologists_Employment, Clinical_Psychologists_Median_Wage,
+         School_Psychologists_Employment, School_Psychologists_Median_Wage)
+
+# Calculate the correlation matrix
+correlation_matrix <- cor(correlation_data, use = "complete.obs")
+
+# Print the correlation matrix
+# print(correlation_matrix)
+```
+
+```{r}
+# Scatter plot: Clinical Psychologists' Employment vs. Median Wage with trend line
+ggplot(data, aes(x = Clinical_Psychologists_Employment, y = Clinical_Psychologists_Median_Wage)) +
+  geom_point(color = 'grey') +
+  geom_smooth(method = "lm", color = "rosybrown1", se = FALSE) +
+  labs(title = "Clinical Psychologists: Employment vs. Median Wage",
+       x = "Clinical Psychologists' Employment",
+       y = "Median Wage") +
+  theme_minimal()
+
+# Scatter plot: School Psychologists' Employment vs. Median Wage with trend line
+ggplot(data, aes(x = School_Psychologists_Employment, y = School_Psychologists_Median_Wage)) +
+  geom_point(color = 'grey') +
+  geom_smooth(method = "lm", color = "rosybrown1", se = FALSE) +
+  labs(title = "School Psychologists: Employment vs. Median Wage",
+       x = "School Psychologists' Employment",
+       y = "Median Wage") +
+  theme_minimal()
+```
+
+**Key Observations:**
+
+1.  The correlation between the employment of clinical psychologists and their median wage is **0.0935**. This low correlation suggests that there is little to no linear relationship between the number of clinical psychologists employed and their median wage. This indicates that factors other than employment numbers may play a more significant role in determining the wages of clinical psychologists.
+2.  The correlation between the employment of school psychologists and their median wage is **0.4128**. This moderate positive correlation indicates a tendency for higher employment numbers to be associated with higher median wages for school psychologists. This relationship suggests that in areas with more school psychologists employed, the wages tend to be higher, possibly reflecting higher demand or better funding for school mental health services.
+
+**Implications:**
+
+1.  **Clinical Psychologists**: The weak correlation implies that increasing the number of clinical psychologists may not directly influence wage levels. Policymakers and stakeholders should consider other factors such as funding, working conditions, and regional demand when planning for clinical psychologist resources.
+2.  **School Psychologists**: The moderate correlation indicates a more direct relationship between employment and wages. Enhancing employment opportunities for school psychologists might also improve wage levels, suggesting a need for targeted policies to support school mental health services.
+
+These correlations help us understand how employment numbers and wages are interrelated, guiding us in identifying trends and making informed policy recommendations.
+
+### 2. Analysis by Age Group and Gender
+
+#### 2.1 Overall Gender Distribution Analysis of Counselors and Psychologists
+
+Analyzing the overall proportion of gender among mental health professionals is important as it provides direct insight into the diversity and representation within the field. Understanding gender distribution among mental health professionals can help identify potential gaps in the workforce and guide targeted recruitment and training efforts.
+
+```{r}
+# Calculate the total number of male and female counselors and psychologists
+total_female <- sum(data$Female_Counselors + data$Female_Psychologists, na.rm = TRUE)
+total_male <- sum(data$Male_Counselors + data$Male_Psychologists, na.rm = TRUE)
+
+# Create a dataframe for the pie chart
+gender_data <- data.frame(
+  Gender = c("Female", "Male"),
+  Count = c(total_female, total_male)
+)
+
+# Create the pie chart with custom colors
+ggplot(gender_data, aes(x = "", y = Count, fill = Gender)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") +
+  scale_fill_manual(values = c("Female" = "rosybrown1", "Male" = "skyblue")) +
+  labs(title = "Comparison of Female vs. Male Mental Health Professionals") +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        legend.title = element_blank())
+```
+
+Analysing proportion of gender for counselors and psychologists in different states is important because different genders experience mental health issues differently and may require gender-sensitive care for effective treatment. This holistic analysis can highlight under-resourced areas and inform targeted interventions to improve mental health care accessibility and quality. Additionally, it can guide aspiring mental health professionals in choosing specializations that are in high demand, ensuring a more effective and responsive mental health care system.
+
+```{r}
+# Calculate gender ratios for counselors and psychologists
+data <- data %>%
+  mutate(
+    Counselors_Total = Male_Counselors + Female_Counselors,
+    Counselors_Male_Ratio = Male_Counselors / Counselors_Total,
+    Counselors_Female_Ratio = Female_Counselors / Counselors_Total,
+    Psychologists_Total = Male_Psychologists + Female_Psychologists,
+    Psychologists_Male_Ratio = Male_Psychologists / Psychologists_Total,
+    Psychologists_Female_Ratio = Female_Psychologists / Psychologists_Total
+  )
+
+# Prepare data for plotting
+counselors_data <- data %>%
+  select(State, Counselors_Male_Ratio, Counselors_Female_Ratio) %>%
+  gather(key = "Gender", value = "Ratio", Counselors_Male_Ratio, Counselors_Female_Ratio) %>%
+  mutate(Role = "Counselors", Gender = ifelse(Gender == "Counselors_Male_Ratio", "Male", "Female"))
+
+psychologists_data <- data %>%
+  select(State, Psychologists_Male_Ratio, Psychologists_Female_Ratio) %>%
+  gather(key = "Gender", value = "Ratio", Psychologists_Male_Ratio, Psychologists_Female_Ratio) %>%
+  mutate(Role = "Psychologists", Gender = ifelse(Gender == "Psychologists_Male_Ratio", "Male", "Female"))
+
+combined_data <- bind_rows(counselors_data, psychologists_data)
+
+# Plot gender distribution for counselors and psychologists
+ggplot(combined_data, aes(x = State, y = Ratio, fill = Gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ Role, scales = "free_y") +
+  labs(
+    title = "Gender Distribution of Counselors and Psychologists by State",
+    x = "State",
+    y = "Proportion"
+  ) +
+  scale_fill_manual(values = c("Male" = "skyblue", "Female" = "rosybrown1")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+**Key Observations:**
+
+1.  The plot shows a significantly higher ratio of female professionals compared to male professionals in both categories across all 16 states. This indicates a gender imbalance within the mental health profession, with women predominantly occupying these roles.
+2.  The plot is divided into two facets, one for counselors and one for psychologists, allowing for a clear comparison within each role. Both facets show a consistent trend of female dominance in the profession.
+
+**Implications:**
+
+1.  **Counselors**: The higher proportion of female counselors suggests that there may be gender-specific factors influencing the choice of this profession. Efforts to balance the gender distribution could include targeted recruitment and support initiatives for male counselors.
+2.  **Psychologists**: Similarly, the predominance of female psychologists highlights a need for understanding the barriers to male participation in this field. Addressing these barriers could involve creating more inclusive work environments and promoting psychology careers to a more diverse audience.
+
+These observations provide valuable insights into the gender dynamics within the mental health profession, highlighting the need for policies and interventions to address gender imbalances and promote diversity in these critical roles.
+
+#### 2.2 Age Distribution Analysis of Counselors and Psychologists by State
+
+Analyzing the proportion of different age group (below 60 and under 60) in each state is important because different age groups experience mental health issues uniquely and may require specialized care for effective treatment. This analysis not only considers patients but also guides aspiring mental health professionals in choosing specializations that are in high demand. By ensuring that mental health services are inclusive and effectively address the specific needs of each age group, we can enhance the overall well-being of the population.
+
+```{r}
+# Calculate age group proportions for counselors and psychologists
+data <- data %>%
+  mutate(
+    Counselors_Total = Counselors_Under60 + Counselors_60plus,
+    Counselors_Under60_Ratio = Counselors_Under60 / Counselors_Total,
+    Counselors_60plus_Ratio = Counselors_60plus / Counselors_Total,
+    Psychologists_Total = Psychologists_Under60 + Psychologists_60plus,
+    Psychologists_Under60_Ratio = Psychologists_Under60 / Psychologists_Total,
+    Psychologists_60plus_Ratio = Psychologists_60plus / Psychologists_Total
+  )
+
+# Prepare data for plotting
+counselors_age_data <- data %>%
+  select(State, Counselors_Under60_Ratio, Counselors_60plus_Ratio) %>%
+  gather(key = "Age_Group", value = "Ratio", Counselors_Under60_Ratio, Counselors_60plus_Ratio) %>%
+  mutate(Role = "Counselors", Age_Group = ifelse(Age_Group == "Counselors_Under60_Ratio", "Under 60", "60+"))
+
+psychologists_age_data <- data %>%
+  select(State, Psychologists_Under60_Ratio, Psychologists_60plus_Ratio) %>%
+  gather(key = "Age_Group", value = "Ratio", Psychologists_Under60_Ratio, Psychologists_60plus_Ratio) %>%
+  mutate(Role = "Psychologists", Age_Group = ifelse(Age_Group == "Psychologists_Under60_Ratio", "Under 60", "60+"))
+
+combined_age_data <- bind_rows(counselors_age_data, psychologists_age_data)
+
+# Plot age distribution for counselors and psychologists
+ggplot(combined_age_data, aes(x = State, y = Ratio, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ Role, scales = "free_y") +
+  labs(
+    title = "Age Distribution of Counselors and Psychologists by State",
+    x = "State",
+    y = "Proportion"
+  ) +
+  scale_fill_manual(values = c("Under 60" = "skyblue", "60+" = "rosybrown1")) + # Customize colors here
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+**Key Observations:**
+
+1.  The plot shows a significantly higher proportion of counselors under the age of 60 compared to those 60 and above across all states. This suggests that the counseling profession is predominantly composed of younger professionals.
+2.  Similarly, the plot indicates a higher proportion of psychologists under the age of 60 compared to those 60 and above across all states. This trend reflects a younger demographic within the psychology profession.
+
+**Implications:**
+
+1.  **Counselors**: The higher proportion of younger counselors may indicate a recent influx of professionals into the field, potentially driven by increased awareness and demand for mental health services. Policymakers should focus on retention strategies to ensure these professionals remain in the field as they age.
+2.  **Psychologists**: The predominance of younger psychologists suggests a similar trend of new entrants into the profession. Ensuring continued professional development and career advancement opportunities will be key to maintaining a stable workforce as these professionals advance in their careers.
+
+These observations provide valuable insights into the age dynamics within the mental health profession, highlighting the need for policies and interventions that support both the entry and retention of professionals in these critical roles.
+
+### 3. Comparison of Psychologists and Counselors
+
+#### 3.1 Analysis of Median Wages by State for Mental Health Professionals
+
+In this analysis, we aim to compare the median wages of three categories of mental health professionals across different states in the US: Mental Health Counselors, Clinical Psychologists, and School Psychologists. We utilize both graphical and statistical methods to visualize and summarize the data.
+
+We filter the data to include only the relevant columns and then reshape it into a long format using `gather()`. This format is suitable for ggplot2, which allows us to easily create plots with multiple categories. To ensure that the State variable is treated as a categorical variable, we convert it to a factor.
+
+We create a scatter plot with regression lines to visualize the relationship between median wages and states for each profession. The `geom_smooth()` function with the `lm` method adds the regression lines.
+
+```{r}
+# Filter and reshape the data for the relevant professions
+filtered_data <- data %>%
+  select(State, Mental_Health_Counselors_Median_Wage, Clinical_Psychologists_Median_Wage, School_Psychologists_Median_Wage) %>%
+  gather(key = "Profession", value = "Median_Wage", -State)
+
+# Ensure State is treated as a factor
+filtered_data$State <- as.factor(filtered_data$State)
+
+# Create the scatter plot with regression lines
+ggplot(filtered_data, aes(x = State, y = Median_Wage, color = Profession)) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, aes(group = Profession)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Comparison of Median Wages by State for Mental Health Professionals",
+       x = "State", y = "Median Wage", color = "Profession")
+```
+
+**Key Observations:**
+
+1.  **Clinical Psychologists:**
+    -   Clinical Psychologists generally have higher median wages compared to the other two professions.
+    -   States like California (CA) and New Jersy (NJ) exhibit significantly higher wages for Clinical Psychologists, with outliers reaching up to \$70.
+    -   The regression line for Clinical Psychologists shows a slight downward trend, indicating a marginal decrease in median wages across states from left to right.
+2.  **School Psychologists:**
+    -   School Psychologists have median wages that fall between those of Clinical Psychologists and Mental Health Counselors.
+    -   States such as California (CA) and Washington (WA) display higher median wages for School Psychologists.
+    -   The regression line for School Psychologists indicates a slight downward trend, similar to that of Clinical Psychologists, suggesting a small decrease in median wages across states.
+3.  **Mental Health Counselors:**
+    -   Mental Health Counselors consistently have the lowest median wages among the three professions.
+    -   States like California (CA) and New Jersy (NJ) exhibit higher wages for Mental Health Counselors.
+
+**Implications:**
+
+1.  **Disparities in Wages:** The significant difference in median wages between Clinical Psychologists and Mental Health Counselors highlights disparities in compensation within the mental health profession. This could affect job satisfaction, recruitment, and retention rates for Mental Health Counselors.
+2.  **Regional Variations:** States with higher median wages for Clinical and School Psychologists may attract more professionals in these fields, potentially leading to a higher concentration of services in those areas. Conversely, states with lower wages may struggle to attract and retain qualified professionals.
+3.  **Policy and Funding:** Policymakers and funding agencies need to address the wage disparities to ensure equitable distribution of mental health services across states. Enhancing wages for Mental Health Counselors could improve access to mental health care, especially in underserved regions.
+4.  **Professional Development:** Encouraging professional development and advanced training for Mental Health Counselors could help bridge the wage gap and promote career advancement. This may also improve the overall quality of mental health services provided.
+5.  **Workforce Planning:** Workforce planning should consider the wage trends and regional variations to develop targeted strategies for recruitment and retention. This is particularly important for states with lower wages to prevent shortages in mental health professionals.
+
+By understanding these key observations and their implications, stakeholders can make informed decisions to enhance the mental health workforce, improve service delivery, and address regional disparities in compensation.
+
+#### 3.2 Distribution for Total Counselors and Psychologists by State
+
+To further understand the availability of mental health professionals across different states, we analyze the distribution of total counselors and psychologists. By comparing the count of these professionals in each state, we can identify areas with higher or lower concentrations of mental health services. This analysis provides valuable insights for workforce planning and resource allocation to ensure equitable access to mental health care.
+
+The following code reshapes the data into a long format and creates a combined bar plot to visualize the distribution of counselors and psychologists across the states.
+
+```{r}
+# Reshape the data to long format
+data_long <- data %>%
+  select(State, Total_Counselors, Total_Psychologists) %>%
+  pivot_longer(cols = c(Total_Counselors, Total_Psychologists),
+               names_to = "Profession",
+               values_to = "Count")
+
+# Create the combined plot
+ggplot(data_long, aes(x = State, y = Count, fill = Profession)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("Total_Counselors" = "skyblue", "Total_Psychologists" = "rosybrown1")) +
+  labs(title = "Distribution of Counselors and Psychologists by State",
+       x = "State",
+       y = "Count",
+       fill = "Profession") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+**Key Observations:**
+
+1.  States like California (CA) and New York (NY) show a significantly higher count of both counselors and psychologists. This indicates a higher concentration of mental health services in these states.
+2.  States such as Wisconsin (WI) and Indiana (IN) display lower counts of both counselors and psychologists. These states might face challenges in providing adequate mental health services to their populations.
+3.  In most states, the number of counselors is higher than the number of psychologists, reflecting the broader scope and possibly the higher demand for counseling services compared to psychological services.
+
+**Implications:**
+
+1.  **Resource Allocation:** Understanding the distribution of mental health professionals can help policymakers and healthcare planners allocate resources more effectively. States with lower counts may benefit from targeted initiatives to attract and retain mental health professionals.
+2.  **Workforce Planning:** Workforce planning efforts should consider the varying concentrations of counselors and psychologists across states. Strategies to balance the distribution can ensure that all regions have sufficient access to mental health services.
+3.  **Access to Care:** Identifying states with lower concentrations of mental health professionals highlights areas where access to mental health care might be limited. Efforts to enhance mental health services in these areas can improve overall public health outcomes.
+
+By analyzing the distribution of counselors and psychologists, we gain insights into the availability of mental health services across states, informing strategies to address disparities and improve access to care.
+
+#### 3.3 Summary Table of Median Wages for Mental Health Professionals
+
+In this section, we provide a statistical analysis of the summary table for median wages of mental health professionals and further analyze the possible reasons behind the observed trends. We will also look forward to further questions and implications suggested by the analysis.
+
+We use `dplyr` to calculate summary statistics (mean, median, standard deviation, minimum, and maximum) for each profession.
+
+```{r}
+# Calculate summary statistics using dplyr
+summary_stats <- filtered_data %>%
+  group_by(Profession) %>%
+  summarise(
+    Mean = mean(Median_Wage, na.rm = TRUE),
+    Median = median(Median_Wage, na.rm = TRUE),
+    SD = sd(Median_Wage, na.rm = TRUE),
+    Min = min(Median_Wage, na.rm = TRUE),
+    Max = max(Median_Wage, na.rm = TRUE),
+  )
+
+# Print the summary statistics
+print(summary_stats)
+```
+
+From 3.1 and 3.2, we observe that counselors have the lowest wages compared to psychologists, and in most states, the number of counselors is higher than the number of psychologists. There are some possible reasons:
+
+1.  **Education and Training Requirements:** Psychologists typically require more advanced education and training (e.g., doctoral degrees) compared to counselors, who may only need a master's degree. This higher level of education and training often translates to higher wages for psychologists.
+2.  **Scope of Practice:** Psychologists often engage in more specialized and intensive therapeutic practices, including clinical assessments, diagnostics, and treatment of severe mental illnesses. Counselors may focus more on general mental health support, which might not command as high a wage.
+3.  **Licensing and Certification:** The licensing and certification processes for psychologists are generally more rigorous, reflecting their higher educational requirements and broader scope of practice. This can contribute to higher compensation.
+4.  **Supply and Demand:** The higher number of counselors in most states could be due to a greater supply of individuals meeting the lower educational and training requirements. Conversely, the more stringent requirements for psychologists limit their supply, increasing their demand and wages.
+5.  **Job Roles and Settings:** Counselors often work in settings such as schools, community centers, and outpatient facilities where budgets may be lower, impacting wages. Psychologists may work in specialized clinical settings, private practices, or research roles that offer higher salaries.
+
+## VI. Conclusion and Future Direction
+
+Our comprehensive analysis of the distribution and characteristics of mental health professionals across the United States reveals several key insights:
+
+1.  **State-by-State Disparities**: There are significant variations in the proportion of mental health professionals relative to the total population across different states. States like Massachusetts and California have a higher concentration of mental health professionals, indicating better access to mental health services. In contrast, states such as Michigan, Indiana, and Texas have lower proportions, highlighting potential gaps in mental health service availability.
+
+2.  **Demographic Trends**: The analysis by age group and gender demonstrates a predominance of female professionals in both counseling and psychology fields. Additionally, there is a higher proportion of younger professionals under the age of 60, suggesting recent growth in the workforce.
+
+3.  **Professional Comparisons**: Comparing psychologists and counselors, we observe that psychologists generally earn higher median wages than counselors. This wage disparity is influenced by factors such as educational requirements, scope of practice, and licensing processes. Moreover, the distribution of these professionals varies significantly by state, with higher concentrations in states like California and New York.
+
+To address the identified disparities and enhance the mental health workforce, we recommend the following future directions:
+
+1.  **Policy Interventions:** States with lower proportions of mental health professionals should consider policy interventions to attract and retain these professionals. This could include incentives such as loan repayment programs, competitive salaries, and improved working conditions.
+
+2.  **Targeted Recruitment:** Efforts to balance the gender distribution and support the entry of underrepresented groups into the mental health profession are crucial. Initiatives such as scholarships, mentorship programs, and targeted outreach can help diversify the workforce.
+
+3.  **Continued Professional Development:** Providing opportunities for ongoing education and career advancement can help retain younger professionals in the field. This includes offering training in specialized areas of mental health and supporting pathways for career progression.
+
+4.  **Resource Allocation:** Effective resource allocation based on state-specific needs is essential. States with lower concentrations of mental health professionals should prioritize funding for mental health services and infrastructure to improve access to care.
+
+5.  **Further Research:** Conducting further research on the factors influencing the employment and wages of mental health professionals can provide deeper insights into the workforce dynamics. This includes exploring the impact of work conditions, job satisfaction, and regional demand on recruitment and retention.
+
+By addressing these areas, we hope that stakeholders can work towards a more balanced and effective mental health care system, ensuring that all individuals have access to the mental health services they need.

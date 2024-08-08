@@ -1,0 +1,6 @@
+"0","# Create new variables for age groups"
+"0","data <- data %>%"
+"0","  mutate(conslrs_under60 = conslrs_lt30_21 + conslrs_30_39_21 + conslrs_40_49_21 + conslrs_50_59_21,"
+"0","         conslrs_60plus = conslrs_ge60_21,"
+"0","         psychol_under60 = psychol_lt30_21 + psychol_30_39_21 + psychol_40_49_21 + psychol_50_59_21,"
+"0","         psychol_60plus = psychol_ge60_21)"

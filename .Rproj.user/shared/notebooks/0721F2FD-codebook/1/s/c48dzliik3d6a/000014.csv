@@ -1,0 +1,8 @@
+"0","# Plot the proportion of mental health population to the total population for each state"
+"0","ggplot(state_data1, aes(x = reorder(State, -Proportion_Mental_Health), y = Proportion_Mental_Health)) +"
+"0","  geom_bar(stat = ""identity"", fill = ""rosybrown1"") +"
+"0","  labs(title = ""Proportion of Mental Health Population to Total Population by State"","
+"0","       x = ""State"","
+"0","       y = ""Proportion of Mental Health Population"") +"
+"0","  theme_minimal() +"
+"0","  theme(axis.text.x = element_text(angle = 45, hjust = 1))"

@@ -1,0 +1,5 @@
+"0","# Remove the original age columns"
+"0","data <- data %>%"
+"0","  select(-conslrs_lt30_21, -conslrs_30_39_21, -conslrs_40_49_21, -conslrs_50_59_21, -conslrs_ge60_21,"
+"0","         -psychol_lt30_21, -psychol_30_39_21, -psychol_40_49_21, -psychol_50_59_21, -psychol_ge60_21)"
+"0",""

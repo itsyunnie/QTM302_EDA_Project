@@ -1,0 +1,6 @@
+"0","# Vector of state abbreviations to keep"
+"0","states_to_keep <- c(""CT"", ""FL"", ""IL"", ""IN"", ""MA"", ""MI"", ""NJ"", ""NY"", ""NC"", ""OH"", ""TX"", ""VA"", ""WA"", ""PA"", ""WI"",""CA"")"
+"0",""
+"0","# Filter the dataset to keep only the specified states"
+"0","data <- data %>%"
+"0","  filter(State %in% states_to_keep)"

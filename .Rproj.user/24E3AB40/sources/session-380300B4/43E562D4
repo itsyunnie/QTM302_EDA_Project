@@ -1,0 +1,31 @@
+{
+    "id": "43E562D4",
+    "path": "~/Desktop/QTM302W/codebook.Rmd",
+    "project_path": "codebook.Rmd",
+    "type": "r_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1723103805347.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "9,16",
+        "scrollLine": "0",
+        "rmdVisualMode": "false",
+        "rmdVisualWrapConfigured": "true",
+        "docOutlineVisible": "1",
+        "rmdVisualCollapsedChunks": "",
+        "rmdVisualModeLocation": "1:0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1723118328,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1723118328557,
+    "read_only": false,
+    "read_only_alternatives": []
+}

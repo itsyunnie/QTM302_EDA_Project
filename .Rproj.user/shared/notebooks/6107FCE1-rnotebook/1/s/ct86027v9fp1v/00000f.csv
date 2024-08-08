@@ -1,0 +1,19 @@
+"0","renv::restore()"
+"1","- The library is already synchronized with the lockfile.
+"
+"0","renv::hydrate()"
+"2","Warning in parse(text = text, keep.source = FALSE, srcfile = NULL)[[1L]] :"
+"2","
+ "
+"2"," subscript out of bounds
+"
+"1","- No new packages were discovered in this project; nothing to do.
+"
+"0","renv::snapshot()"
+"2","Warning in parse(text = text, keep.source = FALSE, srcfile = NULL)[[1L]] :"
+"2","
+ "
+"2"," subscript out of bounds
+"
+"1","- The lockfile is already up to date.
+"
